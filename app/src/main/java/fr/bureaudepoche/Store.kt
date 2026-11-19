@@ -39,6 +39,8 @@ class Store(ctx: Context) {
     val docs = mutableStateListOf<Doc>()
     private val rangements = mutableStateMapOf<String, List<String>>()
     private val maxPerso = mutableStateMapOf<String, Double>()
+    private val dossiersPerso = mutableStateListOf<Dossier>()
+    private val piecesEnPlus = mutableStateMapOf<String, List<Piece>>()
 
     var nom by mutableStateOf(prefs.getString("nom", "") ?: "")
         private set
@@ -58,6 +60,7 @@ class Store(ctx: Context) {
     init {
         chargerDocs()
         chargerRangements()
+        chargerDossiers()
         DEMARCHES.forEach { d ->
             val v = prefs.getFloat("max_${d.id}", -1f)
             if (v > 0f) maxPerso[d.id] = v.toDouble()
@@ -190,6 +193,85 @@ class Store(ctx: Context) {
     }
 
     fun docsDuDossier(d: Dossier): List<Doc> = d.pieces.flatMap { docsRanges("${d.id}/${it.id}") }
+
+    // ---------- Dossiers personnels et pièces ajoutées ----------
+
+    fun tousLesDossiers(): List<Dossier> =
+        DOSSIERS.map { d -> d.copy(pieces = d.pieces + (piecesEnPlus[d.id] ?: emptyList())) } + dossiersPerso
+
+    fun dossierParId(id: String): Dossier? = tousLesDossiers().firstOrNull { it.id == id }
+
+    fun estPerso(dossierId: String) = dossiersPerso.any { it.id == dossierId }
+
+    /** Une pièce peut être retirée si l'utilisateur l'a ajoutée lui-même. */
+    fun pieceRetirable(dossierId: String, pieceId: String) = pieceId.startsWith("p_")
+
+    fun creerDossier(nom: String): Dossier {
+        val d = Dossier("perso_" + UUID.randomUUID().toString().take(8), nom.trim().ifBlank { "Mon dossier" }, "Votre dossier personnel.", "", emptyList())
+        dossiersPerso.add(d)
+        sauverDossiers()
+        return d
+    }
+
+    fun renommerDossier(id: String, nom: String) {
+        val i = dossiersPerso.indexOfFirst { it.id == id }
+        if (i >= 0 && nom.isNotBlank()) { dossiersPerso[i] = dossiersPerso[i].copy(nom = nom.trim()); sauverDossiers() }
+    }
+
+    fun supprimerDossier(id: String) {
+        dossiersPerso.removeAll { it.id == id }
+        rangements.keys.filter { it.startsWith("$id/") }.forEach { rangements.remove(it) }
+        sauverDossiers()
+        sauverRangements()
+    }
+
+    fun ajouterPiece(dossierId: String, nom: String, detail: String, nombre: Int) {
+        val p = Piece("p_" + UUID.randomUUID().toString().take(8), nom.trim(), detail.trim(), nombre.coerceIn(1, 12))
+        val i = dossiersPerso.indexOfFirst { it.id == dossierId }
+        if (i >= 0) dossiersPerso[i] = dossiersPerso[i].copy(pieces = dossiersPerso[i].pieces + p)
+        else piecesEnPlus[dossierId] = (piecesEnPlus[dossierId] ?: emptyList()) + p
+        sauverDossiers()
+    }
+
+    fun retirerPiece(dossierId: String, pieceId: String) {
+        val i = dossiersPerso.indexOfFirst { it.id == dossierId }
+        if (i >= 0) dossiersPerso[i] = dossiersPerso[i].copy(pieces = dossiersPerso[i].pieces.filter { it.id != pieceId })
+        else piecesEnPlus[dossierId] = (piecesEnPlus[dossierId] ?: emptyList()).filter { it.id != pieceId }
+        rangements.remove("$dossierId/$pieceId")
+        sauverDossiers()
+        sauverRangements()
+    }
+
+    private fun piecesJson(l: List<Piece>) = JSONArray().apply {
+        l.forEach { put(JSONObject().put("id", it.id).put("nom", it.nom).put("detail", it.detail).put("nombre", it.nombre)) }
+    }
+
+    private fun piecesDe(a: JSONArray) = (0 until a.length()).map {
+        val o = a.getJSONObject(it)
+        Piece(o.getString("id"), o.getString("nom"), o.optString("detail", ""), o.optInt("nombre", 1))
+    }
+
+    private fun sauverDossiers() {
+        val perso = JSONArray()
+        dossiersPerso.forEach { d ->
+            perso.put(JSONObject().put("id", d.id).put("nom", d.nom).put("intro", d.intro).put("pieces", piecesJson(d.pieces)))
+        }
+        val plus = JSONObject()
+        piecesEnPlus.forEach { (k, v) -> plus.put(k, piecesJson(v)) }
+        prefs.edit().putString("dossiersPerso", perso.toString()).putString("piecesEnPlus", plus.toString()).apply()
+    }
+
+    private fun chargerDossiers() {
+        runCatching {
+            val a = JSONArray(prefs.getString("dossiersPerso", "[]") ?: "[]")
+            for (i in 0 until a.length()) {
+                val o = a.getJSONObject(i)
+                dossiersPerso.add(Dossier(o.getString("id"), o.getString("nom"), o.optString("intro", ""), "", piecesDe(o.getJSONArray("pieces"))))
+            }
+            val p = JSONObject(prefs.getString("piecesEnPlus", "{}") ?: "{}")
+            p.keys().forEach { k -> piecesEnPlus[k] = piecesDe(p.getJSONArray(k)) }
+        }
+    }
 
     // ---------- Sauvegarde ----------
     private fun chargerDocs() {

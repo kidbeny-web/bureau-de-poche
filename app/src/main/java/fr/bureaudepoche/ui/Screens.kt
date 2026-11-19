@@ -32,6 +32,7 @@ import androidx.compose.material.icons.outlined.Compress
 import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.Description
 import androidx.compose.material.icons.outlined.DocumentScanner
+import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material.icons.outlined.Folder
 import androidx.compose.material.icons.outlined.Home
 import androidx.compose.material.icons.outlined.Layers
@@ -73,7 +74,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import fr.bureaudepoche.BuildConfig
 import fr.bureaudepoche.DEMARCHES
-import fr.bureaudepoche.DOSSIERS
 import fr.bureaudepoche.Demarche
 import fr.bureaudepoche.Doc
 import fr.bureaudepoche.Dossier
@@ -83,7 +83,6 @@ import fr.bureaudepoche.MainActivity
 import fr.bureaudepoche.OutFmt
 import fr.bureaudepoche.Processor
 import fr.bureaudepoche.demarche
-import fr.bureaudepoche.dossier
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.File
@@ -625,85 +624,140 @@ private fun LigneVerif(ok: Boolean, texte: String) {
 private fun DossiersEcran(app: MainActivity) {
     val p = LocalPal.current
     val store = app.store
-    Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(horizontal = 20.dp)) {
-        Espace(18)
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Titre("Mes dossiers")
-            if (!store.pro) { Spacer(Modifier.width(8.dp)); EtiquettePro() }
-        }
-        Espace(6)
-        Discret("Rassemblez toutes les pièces d'un dossier, puis envoyez-les en un seul PDF.", size = 14)
-        Espace(16)
-        DOSSIERS.forEach { d ->
-            val prets = d.pieces.count { store.docsRanges("${d.id}/${it.id}").size >= it.nombre }
-            Panneau(onClick = { if (store.pro) app.aller(Screen.DossierS(d.id)) else app.aller(Screen.Pro) }) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Column(Modifier.weight(1f)) {
-                        Text(d.nom, color = p.text, fontSize = 15.sp, fontWeight = FontWeight.SemiBold)
-                        Discret("$prets pièce(s) prête(s) sur ${d.pieces.size}", size = 12)
-                    }
-                    Icon(Icons.Outlined.ChevronRight, contentDescription = null, tint = p.muted)
-                }
+    var creer by remember { mutableStateOf(false) }
+    Column(Modifier.fillMaxSize()) {
+        Column(Modifier.weight(1f).verticalScroll(rememberScrollState()).padding(horizontal = 20.dp)) {
+            Espace(18)
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Titre("Mes dossiers")
+                if (!store.pro) { Spacer(Modifier.width(8.dp)); EtiquettePro() }
             }
-            Espace(10)
+            Espace(6)
+            Discret("Rassemblez toutes les pièces d'un dossier, puis envoyez-les en un seul PDF.", size = 14)
+            Espace(16)
+            store.tousLesDossiers().forEach { d ->
+                val prets = d.pieces.count { store.docsRanges("${d.id}/${it.id}").size >= it.nombre }
+                Panneau(onClick = { if (store.pro) app.aller(Screen.DossierS(d.id)) else app.aller(Screen.Pro) }) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Column(Modifier.weight(1f)) {
+                            Text(d.nom, color = p.text, fontSize = 15.sp, fontWeight = FontWeight.SemiBold)
+                            Discret(
+                                if (d.pieces.isEmpty()) "Aucune pièce pour l'instant" else "$prets pièce(s) prête(s) sur ${d.pieces.size}",
+                                size = 12,
+                            )
+                        }
+                        Icon(Icons.Outlined.ChevronRight, contentDescription = null, tint = p.muted)
+                    }
+                }
+                Espace(10)
+            }
+            Espace(16)
         }
+        Column(Modifier.padding(horizontal = 20.dp, vertical = 12.dp)) {
+            GrosBouton("Nouveau dossier", { if (store.pro) creer = true else app.aller(Screen.Pro) }, icone = Icons.Outlined.Add)
+        }
+    }
+    if (creer) {
+        DialogueTexte(
+            titre = "Nouveau dossier",
+            label = "Nom du dossier",
+            exemple = "Ex. : Inscription école, Prêt immobilier…",
+            onValider = { nom ->
+                creer = false
+                val d = store.creerDossier(nom)
+                app.aller(Screen.DossierS(d.id))
+            },
+            onFermer = { creer = false },
+        )
     }
 }
 
 @Composable
 private fun DossierEcran(app: MainActivity, id: String) {
     val p = LocalPal.current
-    val d: Dossier = dossier(id) ?: return
     val store = app.store
+    val d: Dossier = store.dossierParId(id) ?: return
     var ajoutPour by remember { mutableStateOf<fr.bureaudepoche.Piece?>(null) }
+    var nouvellePiece by remember { mutableStateOf(false) }
+    var confirmerSuppression by remember { mutableStateOf(false) }
+    var renommer by remember { mutableStateOf(false) }
+    val perso = store.estPerso(d.id)
     val tous = store.docsDuDossier(d)
+    val total = d.pieces.size
     val prets = d.pieces.count { store.docsRanges("${d.id}/${it.id}").size >= it.nombre }
     Column(Modifier.fillMaxSize()) {
-        BarreHaut(null, { app.retour() }) { EtiquettePro() }
+        BarreHaut(null, { app.retour() }) {
+            if (perso) {
+                IconButton(onClick = { renommer = true }) { Icon(Icons.Outlined.Edit, contentDescription = "Renommer le dossier", tint = p.text) }
+                IconButton(onClick = { confirmerSuppression = true }) { Icon(Icons.Outlined.Delete, contentDescription = "Supprimer le dossier", tint = p.muted) }
+            } else EtiquettePro()
+        }
         Column(Modifier.weight(1f).verticalScroll(rememberScrollState()).padding(horizontal = 20.dp)) {
             Titre(d.nom)
             Espace(6)
             Discret(d.intro, size = 14)
             Espace(16)
-            Panneau {
-                Row {
-                    Text("$prets pièces prêtes sur ${d.pieces.size}", color = p.text, fontSize = 15.sp, fontWeight = FontWeight.SemiBold, modifier = Modifier.weight(1f))
-                    Discret("${prets * 100 / d.pieces.size} %")
+            if (total > 0) {
+                Panneau {
+                    Row {
+                        Text("$prets pièces prêtes sur $total", color = p.text, fontSize = 15.sp, fontWeight = FontWeight.SemiBold, modifier = Modifier.weight(1f))
+                        Discret("${prets * 100 / total} %")
+                    }
+                    Espace(10)
+                    Box(Modifier.fillMaxWidth().height(10.dp).clip(RoundedCornerShape(50)).background(p.border)) {
+                        Box(Modifier.fillMaxWidth(prets.toFloat() / total).height(10.dp).clip(RoundedCornerShape(50)).background(p.primary))
+                    }
+                }
+                Espace(12)
+                Panneau(pad = 4.dp) {
+                    d.pieces.forEachIndexed { i, piece ->
+                        val cle = "${d.id}/${piece.id}"
+                        val n = store.docsRanges(cle).size
+                        val retirable = store.pieceRetirable(d.id, piece.id)
+                        Row(Modifier.fillMaxWidth().padding(start = 12.dp, end = 4.dp, top = 10.dp, bottom = 10.dp), verticalAlignment = Alignment.CenterVertically) {
+                            Column(Modifier.weight(1f)) {
+                                Text(piece.nom, color = p.text, fontSize = 14.sp, fontWeight = FontWeight.SemiBold)
+                                val detail = listOf(piece.detail, if (piece.nombre > 1) "$n sur ${piece.nombre} ajouté(s)" else "").filter { it.isNotBlank() }.joinToString(" · ")
+                                if (detail.isNotBlank()) Discret(detail, size = 12)
+                            }
+                            Spacer(Modifier.width(8.dp))
+                            when {
+                                n >= piece.nombre -> {
+                                    Pastille("Prêt", p.okBg, p.okText)
+                                    IconButton(onClick = { store.viderPiece(cle) }) { Icon(Icons.Outlined.Close, contentDescription = "Retirer les fichiers", tint = p.muted) }
+                                }
+                                n > 0 -> {
+                                    Pastille("En cours", p.warnBg, p.warnText)
+                                    IconButton(onClick = { ajoutPour = piece }) { Icon(Icons.Outlined.Add, contentDescription = "Ajouter", tint = p.link) }
+                                }
+                                else -> {
+                                    Text(
+                                        "Ajouter",
+                                        color = p.softText, fontSize = 13.sp, fontWeight = FontWeight.SemiBold,
+                                        modifier = Modifier.clip(RoundedCornerShape(12.dp)).background(p.soft).clickable { ajoutPour = piece }.padding(horizontal = 14.dp, vertical = 12.dp),
+                                    )
+                                    if (retirable) {
+                                        IconButton(onClick = { store.retirerPiece(d.id, piece.id) }) { Icon(Icons.Outlined.Delete, contentDescription = "Supprimer la pièce", tint = p.muted) }
+                                    } else Spacer(Modifier.width(8.dp))
+                                }
+                            }
+                        }
+                        if (i < d.pieces.lastIndex) Box(Modifier.fillMaxWidth().height(1.dp).padding(horizontal = 12.dp).background(p.divider))
+                    }
                 }
                 Espace(10)
-                Box(Modifier.fillMaxWidth().height(10.dp).clip(RoundedCornerShape(50)).background(p.border)) {
-                    Box(Modifier.fillMaxWidth(prets.toFloat() / d.pieces.size).height(10.dp).clip(RoundedCornerShape(50)).background(p.primary))
-                }
+            } else {
+                Panneau { Discret("Ajoutez les pièces à rassembler pour ce dossier : pièce d'identité, justificatifs, attestations…", size = 14) }
+                Espace(10)
             }
-            Espace(12)
-            Panneau(pad = 4.dp) {
-                d.pieces.forEachIndexed { i, piece ->
-                    val cle = "${d.id}/${piece.id}"
-                    val n = store.docsRanges(cle).size
-                    Row(Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 10.dp), verticalAlignment = Alignment.CenterVertically) {
-                        Column(Modifier.weight(1f)) {
-                            Text(piece.nom, color = p.text, fontSize = 14.sp, fontWeight = FontWeight.SemiBold)
-                            Discret(if (piece.nombre > 1) "${piece.detail} · $n sur ${piece.nombre} ajouté(s)" else piece.detail, size = 12)
-                        }
-                        Spacer(Modifier.width(8.dp))
-                        when {
-                            n >= piece.nombre -> {
-                                Pastille("Prêt", p.okBg, p.okText)
-                                IconButton(onClick = { store.viderPiece(cle) }) { Icon(Icons.Outlined.Close, contentDescription = "Retirer", tint = p.muted) }
-                            }
-                            n > 0 -> {
-                                Pastille("En cours", p.warnBg, p.warnText)
-                                IconButton(onClick = { ajoutPour = piece }) { Icon(Icons.Outlined.Add, contentDescription = "Ajouter", tint = p.link) }
-                            }
-                            else -> Text(
-                                "Ajouter",
-                                color = p.softText, fontSize = 13.sp, fontWeight = FontWeight.SemiBold,
-                                modifier = Modifier.clip(RoundedCornerShape(12.dp)).background(p.soft).clickable { ajoutPour = piece }.padding(horizontal = 14.dp, vertical = 12.dp),
-                            )
-                        }
-                    }
-                    if (i < d.pieces.lastIndex) Box(Modifier.fillMaxWidth().height(1.dp).padding(horizontal = 12.dp).background(p.divider))
-                }
+            Row(
+                Modifier.fillMaxWidth().clip(RoundedCornerShape(14.dp)).clickable { nouvellePiece = true }.padding(vertical = 12.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.Center,
+            ) {
+                Icon(Icons.Outlined.Add, contentDescription = null, tint = p.link)
+                Spacer(Modifier.width(6.dp))
+                Text("Ajouter une pièce à ce dossier", color = p.link, fontSize = 14.sp, fontWeight = FontWeight.SemiBold)
             }
             Espace(16)
         }
@@ -735,7 +789,94 @@ private fun DossierEcran(app: MainActivity, id: String) {
             )
         }, onFermer = { ajoutPour = null })
     }
+    if (nouvellePiece) {
+        DialoguePiece(onValider = { nom, detail, nombre ->
+            nouvellePiece = false
+            store.ajouterPiece(d.id, nom, detail, nombre)
+        }, onFermer = { nouvellePiece = false })
+    }
+    if (renommer) {
+        DialogueTexte("Renommer le dossier", "Nom du dossier", null, d.nom, onValider = { store.renommerDossier(d.id, it); renommer = false }, onFermer = { renommer = false })
+    }
+    if (confirmerSuppression) {
+        AlertDialog(
+            onDismissRequest = { confirmerSuppression = false },
+            containerColor = p.surface,
+            title = { Text("Supprimer ce dossier ?", color = p.text) },
+            text = { Text("Les fichiers restent dans « Mes fichiers ».", color = p.muted) },
+            confirmButton = {
+                TextButton(onClick = { confirmerSuppression = false; store.supprimerDossier(d.id); app.retour() }) { Text("Supprimer", color = p.pdfText) }
+            },
+            dismissButton = { TextButton(onClick = { confirmerSuppression = false }) { Text("Annuler", color = p.link) } },
+        )
+    }
 }
+
+@Composable
+private fun DialogueTexte(
+    titre: String,
+    label: String,
+    exemple: String?,
+    initial: String = "",
+    onValider: (String) -> Unit,
+    onFermer: () -> Unit,
+) {
+    val p = LocalPal.current
+    var texte by remember { mutableStateOf(initial) }
+    AlertDialog(
+        onDismissRequest = onFermer,
+        containerColor = p.surface,
+        title = { Text(titre, color = p.text, fontWeight = FontWeight.SemiBold) },
+        text = {
+            Column {
+                OutlinedTextField(texte, { texte = it }, label = { Text(label) }, singleLine = true, colors = couleursChamp(), modifier = Modifier.fillMaxWidth())
+                if (exemple != null) { Espace(6); Discret(exemple, size = 12) }
+            }
+        },
+        confirmButton = { TextButton(onClick = { if (texte.isNotBlank()) onValider(texte) }) { Text("Valider", color = p.link, fontWeight = FontWeight.SemiBold) } },
+        dismissButton = { TextButton(onClick = onFermer) { Text("Annuler", color = p.muted) } },
+    )
+}
+
+@Composable
+private fun DialoguePiece(onValider: (String, String, Int) -> Unit, onFermer: () -> Unit) {
+    val p = LocalPal.current
+    var nom by remember { mutableStateOf("") }
+    var detail by remember { mutableStateOf("") }
+    var nombre by remember { mutableStateOf(1) }
+    AlertDialog(
+        onDismissRequest = onFermer,
+        containerColor = p.surface,
+        title = { Text("Ajouter une pièce", color = p.text, fontWeight = FontWeight.SemiBold) },
+        text = {
+            Column {
+                OutlinedTextField(nom, { nom = it }, label = { Text("Nom de la pièce") }, placeholder = { Text("Ex. : Certificat de scolarité") }, singleLine = true, colors = couleursChamp(), modifier = Modifier.fillMaxWidth())
+                Espace(8)
+                OutlinedTextField(detail, { detail = it }, label = { Text("Précision (facultatif)") }, placeholder = { Text("Ex. : moins de 3 mois") }, singleLine = true, colors = couleursChamp(), modifier = Modifier.fillMaxWidth())
+                Espace(12)
+                Text("Nombre de fichiers attendus", color = p.text, fontSize = 13.sp, fontWeight = FontWeight.SemiBold)
+                Espace(6)
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    BoutonRond(Icons.Outlined.Remove, "Moins") { if (nombre > 1) nombre-- }
+                    Text("$nombre", color = p.text, fontSize = 18.sp, fontWeight = FontWeight.Bold, textAlign = TextAlign.Center, modifier = Modifier.weight(1f))
+                    BoutonRond(Icons.Outlined.Add, "Plus") { if (nombre < 12) nombre++ }
+                }
+                Espace(4)
+                Discret("Ex. : 3 pour « 3 derniers bulletins de salaire ».", size = 12)
+            }
+        },
+        confirmButton = { TextButton(onClick = { if (nom.isNotBlank()) onValider(nom, detail, nombre) }) { Text("Ajouter", color = p.link, fontWeight = FontWeight.SemiBold) } },
+        dismissButton = { TextButton(onClick = onFermer) { Text("Annuler", color = p.muted) } },
+    )
+}
+
+@Composable
+private fun couleursChamp() = OutlinedTextFieldDefaults.colors(
+    focusedTextColor = LocalPal.current.text, unfocusedTextColor = LocalPal.current.text,
+    focusedBorderColor = LocalPal.current.primary, unfocusedBorderColor = LocalPal.current.outline,
+    focusedLabelColor = LocalPal.current.link, unfocusedLabelColor = LocalPal.current.muted,
+    focusedPlaceholderColor = LocalPal.current.muted, unfocusedPlaceholderColor = LocalPal.current.muted,
+)
 
 // ==================== FICHIERS ====================
 

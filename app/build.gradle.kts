@@ -5,14 +5,14 @@ plugins {
 
 android {
     namespace = "fr.bureaudepoche"
-    compileSdk = 34
+    compileSdk = 36
 
     defaultConfig {
         applicationId = "fr.bureaudepoche.app"
         minSdk = 28
-        targetSdk = 34
-        versionCode = 1
-        versionName = "1.0.0"
+        targetSdk = 36
+        versionCode = 2
+        versionName = "1.1.0"
         // Version de test : affiche dans les réglages un interrupteur qui débloque Pro sans paiement.
         // À passer à "false" avant la publication sur le Play Store.
         buildConfigField("boolean", "TEST_BUILD", "true")
@@ -31,7 +31,10 @@ android {
 
     buildTypes {
         release {
-            isMinifyEnabled = false
+            // réduit fortement la taille de l'APK
+            isMinifyEnabled = true
+            isShrinkResources = true
+            proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
             signingConfig = signingConfigs.getByName("test")
         }
     }
@@ -66,5 +69,5 @@ dependencies {
     // Scanner de documents Google (traitement sur le téléphone)
     implementation("com.google.android.gms:play-services-mlkit-document-scanner:16.0.0-beta1")
     // Achat unique Pro via Google Play
-    implementation("com.android.billingclient:billing-ktx:7.0.0")
+    implementation("com.android.billingclient:billing:8.0.0")
 }

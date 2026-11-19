@@ -16,6 +16,7 @@ Appli Android qui prépare vos papiers pour les démarches administratives : sca
 - **Dossiers à compléter** : location, carte grise, aide au logement (Pro)
 - **Nom de fichier automatique** : `DUPONT_Jean_Justificatif_de_domicile.pdf` (Pro)
 - Thème clair / sombre / automatique
+- **Dossiers personnels** : créez vos propres dossiers et ajoutez des pièces à n'importe quel dossier
 
 ## À faire avant la publication sur le Play Store
 

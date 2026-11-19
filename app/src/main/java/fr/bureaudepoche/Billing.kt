@@ -55,9 +55,9 @@ class Billing(ctx: Context, private val surPro: () -> Unit) : PurchasesUpdatedLi
                     .build(),
             ),
         ).build()
-        client.queryProductDetailsAsync(params) { r, liste ->
+        client.queryProductDetailsAsync(params) { r, resultat ->
             if (r.responseCode == BillingClient.BillingResponseCode.OK) {
-                details = liste.firstOrNull()
+                details = resultat.productDetailsList.firstOrNull()
                 prix = details?.oneTimePurchaseOfferDetails?.formattedPrice
             }
         }
