@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Document qui dépasse d'une poche, avec une coche verte (même dessin que la maquette). -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <group
+        android:translateX="18"
+        android:translateY="18"
+        android:scaleX="0.18"
+        android:scaleY="0.18">
+        <path android:fillColor="#FFFFFF"
+            android:pathData="M139,62 L261,62 Q275,62 275,76 L275,238 Q275,252 261,252 L139,252 Q125,252 125,238 L125,76 Q125,62 139,62 Z" />
+        <path android:fillColor="#C9D6FF" android:pathData="M156,98 L214,98 Q220,98 220,104 Q220,110 214,110 L156,110 Q150,110 150,104 Q150,98 156,98 Z" />
+        <path android:fillColor="#C9D6FF" android:pathData="M156,124 L244,124 Q250,124 250,130 Q250,136 244,136 L156,136 Q150,136 150,130 Q150,124 156,124 Z" />
+        <path android:fillColor="#C9D6FF" android:pathData="M156,150 L230,150 Q236,150 236,156 Q236,162 230,162 L156,162 Q150,162 150,156 Q150,150 156,150 Z" />
+        <path android:fillColor="#7FA0FF"
+            android:pathData="M88,186 L312,186 L312,282 Q312,336 258,336 L142,336 Q88,336 88,282 Z" />
+        <path android:fillColor="#00000000" android:strokeColor="#FFFFFF" android:strokeWidth="6"
+            android:pathData="M108,206 L292,206 L292,280 Q292,316 256,316 L144,316 Q108,316 108,280 Z" />
+        <path android:fillColor="#1C7C4A"
+            android:pathData="M268,44 A34,34 0 1,1 267.9,44 Z" />
+        <path android:fillColor="#00000000" android:strokeColor="#FFFFFF" android:strokeWidth="9"
+            android:strokeLineCap="round" android:strokeLineJoin="round"
+            android:pathData="M252,78 L263,89 L283,67" />
+    </group>
+</vector>
