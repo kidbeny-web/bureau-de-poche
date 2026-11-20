@@ -27,18 +27,18 @@ jobs:
         run: gradle assembleRelease --stacktrace --no-daemon
 
       - name: Renommer
-        run: cp app/build/outputs/apk/release/app-release.apk BureauDePoche.apk
+        run: cp app/build/outputs/apk/release/app-release.apk PhoenixProBureau.apk
 
       - uses: actions/upload-artifact@v4
         with:
-          name: BureauDePoche-apk
-          path: BureauDePoche.apk
+          name: PhoenixProBureau-apk
+          path: PhoenixProBureau.apk
 
       - name: Publier la version
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           gh release delete derniere-version --yes --cleanup-tag || true
-          gh release create derniere-version BureauDePoche.apk --target main --latest \
-            --title "Bureau de Poche (Android) — build ${{ github.run_number }}" \
+          gh release create derniere-version PhoenixProBureau.apk --target main --latest \
+            --title "Phoenix Pro Bureau (Android) — build ${{ github.run_number }}" \
             --notes "APK prêt à installer sur le téléphone (version de test)."

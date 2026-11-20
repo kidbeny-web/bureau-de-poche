@@ -53,12 +53,7 @@ class MainActivity : ComponentActivity() {
         billing.connecter()
         enableEdgeToEdge()
         setContent {
-            val sysDark = isSystemInDarkTheme()
-            val dark = when (store.theme) {
-                "clair" -> false
-                "sombre" -> true
-                else -> sysDark
-            }
+            val dark = true // Phoenix Pro : toujours en sombre
             LaunchedEffect(dark) {
                 val style = if (dark) SystemBarStyle.dark(android.graphics.Color.TRANSPARENT)
                 else SystemBarStyle.light(android.graphics.Color.TRANSPARENT, android.graphics.Color.TRANSPARENT)

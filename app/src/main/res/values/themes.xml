@@ -1,8 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="fond">#F4F5F7</color>
-    <color name="ic_launcher_background">#1F4FD1</color>
-    <style name="Theme.Bureau" parent="android:Theme.Material.Light.NoActionBar">
+    <color name="fond">#0E1012</color>
+    <style name="Theme.Bureau" parent="android:Theme.Material.NoActionBar">
         <item name="android:windowBackground">@color/fond</item>
     </style>
 </resources>

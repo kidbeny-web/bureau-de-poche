@@ -49,7 +49,7 @@ data class Pal(
     val bg: Color, val surface: Color, val text: Color, val muted: Color, val border: Color,
     val divider: Color, val outline: Color, val primary: Color, val soft: Color, val softText: Color,
     val link: Color, val ok: Color, val okBg: Color, val okText: Color, val warnBg: Color, val warnText: Color,
-    val pdfBg: Color, val pdfText: Color, val dark: Boolean,
+    val pdfBg: Color, val pdfText: Color, val dark: Boolean, val onPrimary: Color = Color.White,
 )
 
 val Clair = Pal(
@@ -61,20 +61,22 @@ val Clair = Pal(
 )
 
 val Sombre = Pal(
-    bg = Color(0xFF0F1114), surface = Color(0xFF1A1D22), text = Color(0xFFF2F3F5), muted = Color(0xFFA7AEBB),
-    border = Color(0xFF2A2E35), divider = Color(0xFF262A31), outline = Color(0xFF3A3F48), primary = Color(0xFF1F4FD1),
-    soft = Color(0xFF1E2A4A), softText = Color(0xFFB9CCFF), link = Color(0xFF93B1FF), ok = Color(0xFF3DD68C),
-    okBg = Color(0xFF12331F), okText = Color(0xFF8BE6B2), warnBg = Color(0xFF3A2A10), warnText = Color(0xFFFFC979),
-    pdfBg = Color(0xFF3A1A1A), pdfText = Color(0xFFFF9F96), dark = true,
+    // Couleurs Phoenix Pro
+    bg = Color(0xFF0E1012), surface = Color(0xFF181B1E), text = Color(0xFFF1F3F4), muted = Color(0xFF9AA1A8),
+    border = Color(0xFF2A2F35), divider = Color(0xFF23272B), outline = Color(0xFF3A3F46), primary = Color(0xFFF08A1C),
+    soft = Color(0xFF3A2A17), softText = Color(0xFFFFC27A), link = Color(0xFF6F9BFF), ok = Color(0xFF5FD6A8),
+    okBg = Color(0xFF12332A), okText = Color(0xFF8BE6C4), warnBg = Color(0xFF3A2A10), warnText = Color(0xFFFFC979),
+    pdfBg = Color(0xFF3A1A1D), pdfText = Color(0xFFFF8F94), dark = true, onPrimary = Color(0xFF1A1206),
 )
 
 val LocalPal = staticCompositionLocalOf { Clair }
 
 @Composable
-fun BureauTheme(dark: Boolean, content: @Composable () -> Unit) {
-    val p = if (dark) Sombre else Clair
+fun BureauTheme(@Suppress("UNUSED_PARAMETER") dark: Boolean, content: @Composable () -> Unit) {
+    // Phoenix Pro : toujours en sombre.
+    val p = Sombre
     val scheme = if (dark) {
-        darkColorScheme(primary = p.primary, background = p.bg, surface = p.surface, onSurface = p.text, onBackground = p.text, onPrimary = Color.White)
+        darkColorScheme(primary = p.primary, background = p.bg, surface = p.surface, onSurface = p.text, onBackground = p.text, onPrimary = p.onPrimary)
     } else {
         lightColorScheme(primary = p.primary, background = p.bg, surface = p.surface, onSurface = p.text, onBackground = p.text, onPrimary = Color.White)
     }
@@ -99,8 +101,9 @@ fun Panneau(
     Column(
         modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(16.dp))
+            .clip(RoundedCornerShape(18.dp))
             .background(p.surface)
+            .border(1.dp, p.border, RoundedCornerShape(18.dp))
             .then(if (onClick != null) Modifier.clickable(onClick = onClick) else Modifier)
             .padding(pad),
         content = content,
@@ -148,10 +151,10 @@ fun GrosBouton(texte: String, onClick: () -> Unit, modifier: Modifier = Modifier
         verticalAlignment = Alignment.CenterVertically,
     ) {
         if (icone != null) {
-            Icon(icone, contentDescription = null, tint = Color.White, modifier = Modifier.size(20.dp))
+            Icon(icone, contentDescription = null, tint = p.onPrimary, modifier = Modifier.size(20.dp))
             Spacer(Modifier.width(10.dp))
         }
-        Text(texte, color = Color.White, fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
+        Text(texte, color = if (actif) p.onPrimary else p.text, fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
     }
 }
 

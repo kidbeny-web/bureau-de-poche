@@ -11,8 +11,8 @@ android {
         applicationId = "fr.bureaudepoche.app"
         minSdk = 28
         targetSdk = 36
-        versionCode = 2
-        versionName = "1.1.0"
+        versionCode = 3
+        versionName = "1.2.0"
         // Version de test : affiche dans les réglages un interrupteur qui débloque Pro sans paiement.
         // À passer à "false" avant la publication sur le Play Store.
         buildConfigField("boolean", "TEST_BUILD", "true")

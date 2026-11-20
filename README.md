@@ -1,10 +1,10 @@
-# Bureau de Poche
+# Phoenix Pro Bureau (ex-Bureau de Poche)
 
-Appli Android qui prépare vos papiers pour les démarches administratives : scan, conversion, compression à la bonne taille, PDF bien nommé, dossiers à compléter. Tout se fait sur le téléphone, sans connexion Internet.
+Appli Android de la gamme Phoenix Pro qui prépare vos papiers pour les démarches administratives : scan, conversion, compression à la bonne taille, PDF bien nommé, dossiers à compléter. Tout se fait sur le téléphone, sans connexion Internet.
 
 ## Télécharger l'APK
 
-À chaque modification, GitHub fabrique l'APK tout seul. Il se trouve dans **Releases → derniere-version → BureauDePoche.apk**.
+À chaque modification, GitHub fabrique l'APK tout seul. Il se trouve dans **Releases → derniere-version → PhoenixProBureau.apk**.
 
 ## Fonctions
 
@@ -15,7 +15,7 @@ Appli Android qui prépare vos papiers pour les démarches administratives : sca
 - **Démarches préréglées** : CAF, ANTS, Impôts, France Travail, Location, Mutuelle
 - **Dossiers à compléter** : location, carte grise, aide au logement (Pro)
 - **Nom de fichier automatique** : `DUPONT_Jean_Justificatif_de_domicile.pdf` (Pro)
-- Thème clair / sombre / automatique
+- Interface Phoenix Pro (sombre, accent orange)
 - **Dossiers personnels** : créez vos propres dossiers et ajoutez des pièces à n'importe quel dossier
 
 ## À faire avant la publication sur le Play Store

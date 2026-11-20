@@ -170,7 +170,7 @@ private fun AccueilEcran(app: MainActivity) {
     Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(horizontal = 20.dp)) {
         Espace(14)
         Row(verticalAlignment = Alignment.CenterVertically) {
-            Text("Bureau de Poche", color = p.text, fontSize = 28.sp, fontWeight = FontWeight.Bold, modifier = Modifier.weight(1f))
+            Text("Phoenix Pro Bureau", color = p.text, fontSize = 28.sp, fontWeight = FontWeight.Bold, modifier = Modifier.weight(1f))
             IconButton(onClick = { app.aller(Screen.Reglages) }) { Icon(Icons.Outlined.Settings, contentDescription = "Réglages", tint = p.text) }
         }
         Row(verticalAlignment = Alignment.CenterVertically) {
@@ -185,13 +185,13 @@ private fun AccueilEcran(app: MainActivity) {
                 .padding(18.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            Box(Modifier.size(48.dp).clip(RoundedCornerShape(14.dp)).background(Color.White.copy(alpha = 0.16f)), contentAlignment = Alignment.Center) {
-                Icon(Icons.Outlined.DocumentScanner, contentDescription = null, tint = Color.White)
+            Box(Modifier.size(48.dp).clip(RoundedCornerShape(14.dp)).background(p.onPrimary.copy(alpha = 0.12f)), contentAlignment = Alignment.Center) {
+                Icon(Icons.Outlined.DocumentScanner, contentDescription = null, tint = p.onPrimary)
             }
             Spacer(Modifier.width(14.dp))
             Column {
-                Text("Scanner un document", color = Color.White, fontSize = 17.sp, fontWeight = FontWeight.SemiBold)
-                Text("Recadrage et netteté automatiques", color = Color.White.copy(alpha = 0.9f), fontSize = 13.sp)
+                Text("Scanner un document", color = p.onPrimary, fontSize = 17.sp, fontWeight = FontWeight.SemiBold)
+                Text("Recadrage et netteté automatiques", color = p.onPrimary.copy(alpha = 0.8f), fontSize = 13.sp)
             }
         }
         Espace(12)
@@ -925,10 +925,10 @@ private fun ProEcran(app: MainActivity) {
         if (app.pile.size > 1) BarreHaut(null, { app.retour() }) else Espace(18)
         Column(Modifier.weight(1f).verticalScroll(rememberScrollState()).padding(horizontal = 20.dp), horizontalAlignment = Alignment.CenterHorizontally) {
             Box(Modifier.size(72.dp).clip(RoundedCornerShape(18.dp)).background(p.primary), contentAlignment = Alignment.Center) {
-                Icon(Icons.Outlined.Star, contentDescription = null, tint = Color.White, modifier = Modifier.size(36.dp))
+                Icon(Icons.Outlined.Star, contentDescription = null, tint = p.onPrimary, modifier = Modifier.size(36.dp))
             }
             Espace(10)
-            Titre("Bureau de Poche Pro")
+            Titre("Phoenix Pro Bureau · Pro")
             Espace(6)
             Discret(
                 if (store.pro) "Pro est activé. Merci pour votre soutien !" else "Toutes vos démarches, sans limite. Un seul paiement, pas d'abonnement.",
@@ -1005,17 +1005,6 @@ private fun ReglagesEcran(app: MainActivity) {
                 BoutonContour("Enregistrer", { store.setIdentite(nom, prenom); app.toast("Nom enregistré") })
             }
             Espace(12)
-            Panneau {
-                Text("Thème", color = p.text, fontSize = 15.sp, fontWeight = FontWeight.SemiBold)
-                Espace(10)
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    listOf("auto" to "Auto", "clair" to "Clair", "sombre" to "Sombre").forEach { (v, l) ->
-                        Choix(l, store.theme == v, { store.setThemeMode(v) }, Modifier.weight(1f))
-                    }
-                }
-                Espace(6)
-                Discret("« Auto » suit le réglage de votre téléphone.", size = 12)
-            }
             if (BuildConfig.TEST_BUILD) {
                 Espace(12)
                 Panneau {
@@ -1043,7 +1032,7 @@ private fun ReglagesEcran(app: MainActivity) {
                 }
             }
             Espace(12)
-            Discret("Bureau de Poche ${BuildConfig.VERSION_NAME}", Modifier.fillMaxWidth(), size = 12)
+            Discret("Phoenix Pro Bureau ${BuildConfig.VERSION_NAME}", Modifier.fillMaxWidth(), size = 12)
             Espace(24)
         }
     }
